@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador de Clientes</title>
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; }
+        * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body { background: var(--bg); margin: 0; padding: 15px; color: #1e293b; }
+        h1 { margin: 0; font-size: 1.5rem; }
+        p { color: #64748b; font-size: 0.9rem; }
+        .box { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
+        input, select, button { padding: 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 16px; width: 100%; }
+        button { background: var(--primary); color: white; font-weight: bold; border: none; cursor: pointer; }
+        .dashboard { background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stats-grid { display: flex; justify-content: space-around; text-align: center; }
+        .stat-card span { display: block; font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+        .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid var(--primary); }
+        .card h4 { margin: 0 0 5px 0; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; margin-top: 8px; font-weight: bold; }
+        .badge-sem-site { background: #fef08a; color: #854d0e; }
+        .badge-com-site { background: #dcfce7; color: #166534; }
+        .btn-sm { padding: 10px; font-size: 0.9rem; width: auto; margin-top: 10px; background: #0f172a; color: white; border: none; border-radius: 6px; font-weight: bold;}
+        .btn-google { background: #4285F4; color: white; text-decoration: none; display: inline-block; padding: 10px; font-size: 0.9rem; margin-top: 10px; border-radius: 6px; font-weight: bold;}
+        .btn-danger { background: #ef4444; margin-top: 10px; width: 100%; }
+        .empty-msg { text-align: center; color: #94a3b8; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Buscador de Clientes</h1>
+    <p>Encontre negócios que precisam de um site.</p>
+
+    <div class="box">
+        <input type="text" id="cidade" placeholder="Cidade (ex: Jundiaí)" value="Jundiaí">
+        <select id="segmento">
+            <option value="restaurant">Restaurantes</option>
+            <option value="barber">Barbearias</option>
+            <option value="shop">Lojas</option>
+            <option value="car_repair">Oficinas</option>
+            <option value="cafe">Cafés/Lanchonetes</option>
+        </select>
+        <button onclick="buscar()">Buscar Empresas</button>
+    </div>
+
+    <div class="dashboard">
+        <h3>Seu Progresso</h3>
+        <div class="stats-grid">
+            <div class="stat-card"><span id="st1">0</span><small>Salvos</small></div>
+            <div class="stat-card"><span id="st2">0</span><small>Contatados</small></div>
+            <div class="stat-card"><span id="st3">0</span><small>Clientes</small></div>
+        </div>
+    </div>
+
+    <div id="res"><p class="empty-msg">Digite uma cidade e clique em buscar.</p></div>
+    <div id="salvos" style="display:none;">
+        <h3>📁 Meus Contatos</h3>
+        <div id="lista"></div>
+        <button class="btn-danger" onclick="limparTudo()">Apagar Tudo</button>
+    </div>
+
+    <script>
+        let salvos = JSON.parse(localStorage.getItem('meus_clientes')) || [];
+
+        function buscar() {
+            const cidade = document.getElementById('cidade').value;
+            const segmento = document.getElementById('segmento').value;
+            const res = document.getElementById('res');
+
+            if (!cidade) { alert("Digite uma cidade!"); return; }
+            res.innerHTML = '<p class="empty-msg">📍 Buscando cidade...</p>';
+
+            fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(cidade) + '&format=json&limit=1')
+            .then(r => r.json())
+            .then(geo => {
+                if (geo.length === 0) throw new Error("Cidade não encontrada");
+                const lat = geo[0].lat, lon = geo[0].lon;
+                let tag = '';
+                if (segmento === 'restaurant') tag = 'amenity=restaurant';
+                else if (segmento === 'barber') tag = 'shop=hairdresser';
+                else if (segmento === 'shop') tag = 'shop';
+                else if (segmento === 'car_repair') tag = 'shop=car_repair';
+                else if (segmento === 'cafe') tag = 'amenity=cafe';
+
+                res.innerHTML = '<p class="empty-msg">🔍 Buscando negócios...</p>';
+                const query = `[out:json][timeout:15];(node[${tag}](around:3000,${lat},${lon});way[${tag}](around:3000,${lat},${lon}););out center 50;`;
+                
+                return fetch('https://overpass-api.de/api/interpreter', {
+                    method: 'POST',
+                    body: 'data=' + encodeURIComponent(query)
+                });
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (!data.elements || data.elements.length === 0) {
+                    res.innerHTML = '<p class="empty-msg">Nenhum negócio encontrado.</p>';
+                    return;
+                }
+                res.innerHTML = '';
+                data.elements.filter(e => e.tags && e.tags.name).forEach(local => {
+                    const temSite = local.tags.website || local.tags['contact:website'];
+                    
+                    // BUSCA AVANÇADA DE TELEFONE (procura em 5 campos diferentes)
+                    const fone = local.tags.phone || local.tags['contact:phone'] || local.tags.mobile || local.tags['contact:mobile'] || local.tags['phone:mobile'] || 'Não informado';
+                    
+                    const endereco = local.tags['addr:street'] || 'Endereço não detalhado';
+                    const nomeEmpresa = local.tags.name;
+
+                    const div = document.createElement('div');
+                    div.className = 'card';
+                    div.innerHTML = `
+                        <h4>${nomeEmpresa}</h4>
+                        <p>📍 ${endereco}</p>
+                        <p>📞 ${fone}</p>
+                        <span class="badge ${temSite ? 'badge-com-site' : 'badge-sem-site'}">${temSite ? '✅ Possui Site' : '🔥 Sem site'}</span>
+                        <br>
+                        <button class="btn-sm" onclick='salvar(${JSON.stringify(JSON.stringify(local.tags))})'>💾 Salvar Oportunidade</button>
+                        <a href="https://www.google.com/search?q=${encodeURIComponent(nomeEmpresa + ' ' + endereco)}" target="_blank" class="btn-google">🌐 Achar no Google</a>
+                    `;
+                    res.appendChild(div);
+                });
+            })
+            .catch(err => {
+                res.innerHTML = `<div style="color:#991b1b; padding:10px; background:#fee2e2; border-radius:8px;">❌ Erro: ${err.message}</div>`;
+            });
+        }
+
+        function salvar(tagsStr) {
+            const tags = JSON.parse(tagsStr);
+            if (salvos.some(s => s.nome === tags.name)) { alert("Já está salvo!"); return; }
+            salvos.push({ id: Date.now(), nome: tags.name, telefone: tags.phone || tags['contact:phone'] || '', site: tags.website || '', status: 'Novo' });
+            localStorage.setItem('meus_clientes', JSON.stringify(salvos));
+            atualizar();
+            alert(tags.name + " salvo!");
+        }
+
+        function atualizar() {
+            document.getElementById('st1').innerText = salvos.length;
+            document.getElementById('st2').innerText = salvos.filter(s => s.status !== 'Novo').length;
+            document.getElementById('st3').innerText = salvos.filter(s => s.status === 'Fechado').length;
+
+            const area = document.getElementById('salvos');
+            const lista = document.getElementById('lista');
+            if (salvos.length > 0) {
+                area.style.display = 'block';
+                lista.innerHTML = salvos.map(s => `
+                    <div class="card" style="border-left-color: #0f172a;">
+                        <h4>${s.nome}</h4>
+                        <p>${s.site ? 'Baixa Prioridade' : '🔥 Alta Prioridade'}</p>
+                        <select onchange="mudar(${s.id}, this.value)" style="margin-top:8px; padding:8px;">
+                            <option value="Novo" ${s.status === 'Novo' ? 'selected' : ''}>Novo Contato</option>
+                            <option value="Proposta" ${s.status === 'Proposta' ? 'selected' : ''}>Proposta Enviada</option>
+                            <option value="Respondeu" ${s.status === 'Respondeu' ? 'selected' : ''}>Respondeu</option>
+                            <option value="Fechado" ${s.status === 'Fechado' ? 'selected' : ''}>Cliente Fechado</option>
+                        </select>
+                        <button class="btn-sm" style="background:#ef4444; margin-left:5px;" onclick="excluir(${s.id})">Excluir</button>
+                    </div>
+                `).join('');
+            } else {
+                area.style.display = 'none';
+            }
+        }
+
+        function mudar(id, status) {
+            const s = salvos.find(x => x.id === id);
+            if (s) { s.status = status; localStorage.setItem('meus_clientes', JSON.stringify(salvos)); atualizar(); }
+        }
+
+        function excluir(id) {
+            if(confirm("Apagar?")) {
+                salvos = salvos.filter(x => x.id !== id);
+                localStorage.setItem('meus_clientes', JSON.stringify(salvos));
+                atualizar();
+            }
+        }
+
+        function limparTudo() {
+            if(confirm("Apagar todos?")) { salvos = []; localStorage.removeItem('meus_clientes'); atualizar(); }
+        }
+
+        window.onload = atualizar;
+    </script>
+</body>
+</html>
