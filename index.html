@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prospecta Pro - Ferramenta de Vendas</title>
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; --dark: #0f172a; --admin: #8b5cf6; }
+        * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 0; }
+        body { background: var(--bg); color: #1e293b; }
+        
+        /* ESTILOS DA PÁGINA DE VENDAS */
+        .landing-page { padding: 40px 20px; text-align: center; max-width: 800px; margin: 0 auto; display: none; }
+        .hero-title { font-size: 2.5rem; font-weight: 900; color: var(--dark); line-height: 1.2; margin-bottom: 15px; }
+        .hero-subtitle { font-size: 1.1rem; color: #64748b; margin-bottom: 30px; }
+        .benefits { text-align: left; margin: 30px 0; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .benefits li { margin-bottom: 12px; font-size: 1rem; list-style: none; display: flex; align-items: center; gap: 10px; }
+        .price-box { background: var(--dark); color: white; padding: 30px; border-radius: 16px; margin: 30px 0; }
+        .price-box h2 { font-size: 3rem; font-weight: 900; margin-bottom: 5px; }
+        .price-box p { color: #94a3b8; font-size: 0.9rem; margin-bottom: 20px; }
+        .btn-whats { background: #25D366; color: white; padding: 18px 30px; border-radius: 50px; font-size: 1.2rem; font-weight: bold; text-decoration: none; display: inline-block; width: 100%; transition: transform 0.2s; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4); border: none; cursor: pointer; }
+        .btn-whats:active { transform: scale(0.98); }
+        .btn-login-link { background: transparent; color: var(--primary); border: 2px solid var(--primary); padding: 15px 30px; border-radius: 50px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 15px; width: 100%; }
+
+        /* TELA DE LOGIN */
+        #tela-login { display: none; padding: 40px 20px; text-align: center; max-width: 400px; margin: 0 auto; }
+        .login-box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .login-box input { width: 100%; padding: 14px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; }
+        .login-box button { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; font-size: 16px; cursor: pointer; }
+
+        /* ESTILOS DO APP */
+        .app-container { display: none; padding: 15px; max-width: 800px; margin: 0 auto; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab-btn { flex: 1; min-width: 80px; padding: 12px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; background: #e2e8f0; color: #475569; }
+        .tab-btn.active { background: var(--primary); color: white; }
+        h1 { margin-bottom: 5px; font-size: 1.5rem; }
+        p { color: #64748b; font-size: 0.9rem; margin-bottom: 15px;}
+        .box { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
+        input, select, button { padding: 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 16px; width: 100%; }
+        .btn-primary { background: var(--primary); color: white; font-weight: bold; border: none; cursor: pointer; }
+        .dashboard { background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stats-grid { display: flex; justify-content: space-around; text-align: center; }
+        .stat-card span { display: block; font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+        .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid var(--primary); }
+        .card h4 { margin: 0 0 5px 0; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; margin-top: 8px; font-weight: bold; }
+        .badge-sem-site { background: #fef08a; color: #854d0e; }
+        .badge-com-site { background: #dcfce7; color: #166534; }
+        .btn-sm { padding: 10px; font-size: 0.9rem; width: auto; margin-top: 10px; background: var(--dark); color: white; border: none; border-radius: 6px; font-weight: bold;}
+        .btn-google { background: #4285F4; color: white; text-decoration: none; display: inline-block; padding: 10px; font-size: 0.9rem; margin-top: 10px; border-radius: 6px; font-weight: bold;}
+        .btn-danger { background: #ef4444; margin-top: 10px; width: 100%; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold;}
+        .empty-msg { text-align: center; color: #94a3b8; margin-top: 30px; }
+
+        /* ESTILOS DO ADMIN */
+        #tela-admin { display: none; }
+        .admin-card { background: white; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--admin); display: flex; justify-content: space-between; align-items: center; }
+        .admin-card div { font-size: 0.9rem; }
+        .btn-admin { background: var(--admin); }
+    </style>
+</head>
+<body>
+
+    <!-- TELA 1: PÁGINA DE VENDAS -->
+    <div id="tela-vendas" class="landing-page">
+        <h1 class="hero-title">Encontre Clientes e Gere Sites Profissionais em Segundos.</h1>
+        <p class="hero-subtitle">A ferramenta definitiva para quem vende criação de sites. Pare de perder tempo no Google Maps.</p>
+
+        <ul class="benefits">
+            <li>✅ <strong>Buscador Inteligente:</strong> Encontre negócios locais que ainda não têm site.</li>
+            <li>✅ <strong>Gerador Nível Agência:</strong> Crie demonstrações de sites com botão de WhatsApp em 1 clique.</li>
+            <li>✅ <strong>Painel de Acompanhamento:</strong> Gerencie seus leads e feche mais vendas.</li>
+            <li>✅ <strong>Download Imediato:</strong> Baixe o código do site e entregue ao cliente.</li>
+        </ul>
+
+        <div class="price-box">
+            <h2>R$ 50<span style="font-size: 1rem; font-weight: normal;">/mês</span></h2>
+            <p>Acesso ilimitado à ferramenta. Cancele quando quiser.</p>
+            <a href="https://wa.me/5511932630791?text=Ol%C3%A1!%20Quero%20assinar%20o%20Prospecta%20Pro%20por%20R%24%2050%2Fm%C3%AAs." target="_blank" class="btn-whats">📱 Assinar pelo WhatsApp</a>
+        </div>
+
+        <button class="btn-login-link" onclick="mostrarLogin()">Já sou assinante (Fazer Login)</button>
+    </div>
+
+    <!-- TELA 2: LOGIN -->
+    <div id="tela-login">
+        <div class="login-box">
+            <h2 style="margin-bottom: 20px; color: var(--dark);">Acessar Painel</h2>
+            <input type="email" id="login-email" placeholder="Seu e-mail">
+            <input type="password" id="login-senha" placeholder="Sua senha">
+            
+            <!-- CAMPO DO CÓDIGO SECRETO -->
+            <input type="password" id="login-codigo" placeholder="Código de Administrador (Opcional)" style="border: 2px dashed #8b5cf6;">
+            
+            <button onclick="fazerLogin()">Entrar</button>
+            <button onclick="voltarVendas()" style="background: transparent; color: #64748b; margin-top: 15px; box-shadow: none;">Voltar</button>
+        </div>
+    </div>
+
+    <!-- TELA 3: O APP -->
+    <div id="app" class="app-container">
+        <div class="tabs">
+            <button class="tab-btn active" id="tab-buscador" onclick="mudarAba('buscador')">🔍 Buscador</button>
+            <button class="tab-btn" id="tab-gerador" onclick="mudarAba('gerador')">🎨 Gerador Pro</button>
+            <!-- A aba Admin só aparece se o código secreto for digitado -->
+            <button class="tab-btn" id="tab-admin" style="display:none; background: var(--admin); color: white;" onclick="mudarAba('admin')">👑 Admin</button>
+            <button class="tab-btn" style="flex: 0.3; background: #ef4444; color: white;" onclick="sair()">Sair</button>
+        </div>
+
+        <!-- BUSCADOR -->
+        <div id="tela-buscador">
+            <h1>Buscador de Clientes</h1>
+            <p>Encontre negócios que precisam de um site.</p>
+            <div class="box">
+                <input type="text" id="cidade" placeholder="Cidade (ex: Jundiaí)" value="Jundiaí">
+                <select id="segmento">
+                    <option value="restaurant">Restaurantes</option>
+                    <option value="barber">Barbearias</option>
+                    <option value="shop">Lojas</option>
+                    <option value="car_repair">Oficinas</option>
+                    <option value="cafe">Cafés/Lanchonetes</option>
+                </select>
+                <button class="btn-primary" onclick="buscar()">Buscar Empresas</button>
+            </div>
+            <div class="dashboard">
+                <h3>Seu Progresso</h3>
+                <div class="stats-grid">
+                    <div class="stat-card"><span id="st1">0</span><small>Salvos</small></div>
+                    <div class="stat-card"><span id="st2">0</span><small>Contatados</small></div>
+                    <div class="stat-card"><span id="st3">0</span><small>Clientes</small></div>
+                </div>
+            </div>
+            <div id="res"><p class="empty-msg">Digite uma cidade e clique em buscar.</p></div>
+            <div id="salvos" style="display:none;">
+                <h3>📁 Meus Contatos</h3>
+                <div id="lista"></div>
+                <button class="btn-danger" onclick="limparTudo()">Apagar Tudo</button>
+            </div>
+        </div>
+
+        <!-- GERADOR -->
+        <div id="tela-gerador" style="display:none;">
+            <h1>Gerador de Sites PRO</h1>
+            <p>Crie um site nível agência para impressionar o cliente.</p>
+            <div class="box">
+                <input type="text" id="gen-nome" placeholder="Nome da Empresa">
+                <input type="text" id="gen-tel" placeholder="WhatsApp (ex: 11999998888)">
+                <input type="text" id="gen-slogan" placeholder="Slogan (ex: O melhor da cidade)">
+                <select id="gen-ramo">
+                    <option value="Barbearia">💈 Barbearia</option>
+                    <option value="Restaurante">🍔 Restaurante</option>
+                    <option value="Oficina">🔧 Oficina</option>
+                    <option value="Loja">🛍️ Loja</option>
+                    <option value="Serviços">💼 Serviços Gerais</option>
+                </select>
+                <select id="gen-cor">
+                    <option value="#1e293b">Dark Premium</option>
+                    <option value="#dc2626">Vermelho Intenso</option>
+                    <option value="#2563eb">Azul Confiança</option>
+                    <option value="#16a34a">Verde Sucesso</option>
+                    <option value="#d97706">Dourado Luxo</option>
+                </select>
+                <button class="btn-primary" onclick="gerarSitePro()">✨ Gerar Site Nível Agência</button>
+                
+                <div id="area-download" style="display: none; margin-top: 15px; padding: 15px; background: #dcfce7; border-radius: 8px; text-align: center;">
+                    <p style="color: #166534; font-weight: bold; margin-bottom: 10px;">✅ Site gerado com sucesso!</p>
+                    <button onclick="baixarSite()" style="background: #16a34a; color: white; padding: 12px; border-radius: 8px; border: none; font-weight: bold; width: 100%;">
+                        📥 Baixar Arquivo do Site
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAINEL ADMIN -->
+        <div id="tela-admin" style="display:none;">
+            <h1>Painel do Administrador</h1>
+            <p>Adicione ou remova assinantes do seu sistema.</p>
+            
+            <div class="box" style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="margin-bottom: 10px;">Novo Assinante</h3>
+                <input type="email" id="adm-email" placeholder="E-mail do cliente">
+                <input type="text" id="adm-senha" placeholder="Senha de acesso">
+                <button class="btn-primary btn-admin" onclick="adicionarUsuario()">Adicionar Cliente</button>
+            </div>
+
+            <h3 style="margin-bottom: 10px;">Assinantes Ativos</h3>
+            <div id="lista-usuarios"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- CÓDIGO SECRETO DO ADMIN ---
+        const CODIGO_MESTRE = "150612";
+
+        // --- BASE DE DADOS LOCAL ---
+        let usuarios = JSON.parse(localStorage.getItem('usuarios_prospecta')) || [
+            { email: "admin@prospecta.com", senha: "admin123", isAdmin: true },
+            { email: "cliente@teste.com", senha: "1234", isAdmin: false }
+        ];
+
+        // --- CONTROLE DE TELAS ---
+        function mostrarLogin() {
+            document.getElementById('tela-vendas').style.display = 'none';
+            document.getElementById('tela-login').style.display = 'block';
+        }
+        function voltarVendas() {
+            document.getElementById('tela-login').style.display = 'none';
+            document.getElementById('tela-vendas').style.display = 'block';
+        }
+
+        // --- LOGIN COM CÓDIGO SECRETO ---
+        function fazerLogin() {
+            const emailDigitado = document.getElementById('login-email').value;
+            const senhaDigitada = document.getElementById('login-senha').value;
+            const codigoDigitado = document.getElementById('login-codigo').value;
+
+            const usuarioValido = usuarios.find(u => u.email === emailDigitado && u.senha === senhaDigitada);
+
+            if (usuarioValido) {
+                // Se a pessoa digitou o código mestre, ela vira Admin na hora!
+                if (codigoDigitado === CODIGO_MESTRE) {
+                    usuarioValido.isAdmin = true; 
+                } else if (usuarioValido.email === "admin@prospecta.com") {
+                    // Se for o e-mail admin mas não digitou o código, barra o acesso
+                    alert("Código de Administrador incorreto ou não informado.");
+                    return;
+                }
+                
+                localStorage.setItem('logado', JSON.stringify(usuarioValido));
+                entrarNoApp(usuarioValido);
+            } else {
+                alert("E-mail ou senha incorretos! Se ainda não é assinante, volte e clique em Assinar.");
+            }
+        }
+
+        function sair() {
+            localStorage.removeItem('logado');
+            document.getElementById('app').style.display = 'none';
+            voltarVendas();
+        }
+
+        function entrarNoApp(usuario) {
+            document.getElementById('tela-vendas').style.display = 'none';
+            document.getElementById('tela-login').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            
+            // Se a pessoa digitou o código secreto e virou admin, mostra a aba!
+            if (usuario && usuario.isAdmin) {
+                document.getElementById('tab-admin').style.display = 'block';
+            } else {
+                document.getElementById('tab-admin').style.display = 'none';
+            }
+        }
+
+        window.onload = function() {
+            const logado = JSON.parse(localStorage.getItem('logado'));
+            if (logado) {
+                entrarNoApp(logado);
+            } else {
+                document.getElementById('tela-vendas').style.display = 'block';
+            }
+            atualizar(); 
+            renderizarUsuarios();
+        };
+
+        // --- ABAS ---
+        function mudarAba(aba) {
+            document.getElementById('tela-buscador').style.display = aba === 'buscador' ? 'block' : 'none';
+            document.getElementById('tela-gerador').style.display = aba === 'gerador' ? 'block' : 'none';
+            document.getElementById('tela-admin').style.display = aba === 'admin' ? 'block' : 'none';
+            
+            document.getElementById('tab-buscador').className = aba === 'buscador' ? 'tab-btn active' : 'tab-btn';
+            document.getElementById('tab-gerador').className = aba === 'gerador' ? 'tab-btn active' : 'tab-btn';
+            if(aba === 'admin') document.getElementById('tab-admin').className = 'tab-btn active';
+            else document.getElementById('tab-admin').className = 'tab-btn';
+        }
+
+        // --- FUNÇÕES DO ADMIN (CRIAR E EXCLUIR CLIENTES) ---
+        function adicionarUsuario() {
+            const email = document.getElementById('adm-email').value;
+            const senha = document.getElementById('adm-senha').value;
+
+            if (!email || !senha) { alert("Preencha e-mail e senha!"); return; }
+            if (usuarios.some(u => u.email === email)) { alert("Este e-mail já está cadastrado!"); return; }
+
+            usuarios.push({ email: email, senha: senha, isAdmin: false });
+            localStorage.setItem('usuarios_prospecta', JSON.stringify(usuarios));
+            
+            document.getElementById('adm-email').value = '';
+            document.getElementById('adm-senha').value = '';
+            
+            renderizarUsuarios();
+            alert("Cliente adicionado com sucesso! Ele já pode fazer login.");
+        }
+
+        function removerUsuario(email) {
+            if(confirm("Tem certeza que deseja remover o acesso de " + email + "?")) {
+                usuarios = usuarios.filter(u => u.email !== email);
+                localStorage.setItem('usuarios_prospecta', JSON.stringify(usuarios));
+                renderizarUsuarios();
+            }
+        }
+
+        function renderizarUsuarios() {
+            const lista = document.getElementById('lista-usuarios');
+            if (!lista) return;
+            
+            lista.innerHTML = usuarios.map(u => `
+                <div class="admin-card">
+                    <div>
+                        <strong>${u.email}</strong><br>
+                        <span style="color: #64748b;">Senha: ${u.senha}</span>
+                        ${u.isAdmin ? '<br><span style="color: #8b5cf6; font-weight: bold;">ADMIN</span>' : ''}
+                    </div>
+                    ${!u.isAdmin ? `<button onclick="removerUsuario('${u.email}')" style="background: #ef4444; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; width: auto;">Remover</button>` : ''}
+                </div>
+            `).join('');
+        }
+
+        // --- LÓGICA DO BUSCADOR ---
+        let salvos = JSON.parse(localStorage.getItem('meus_clientes')) || [];
+        
+        function buscar() {
+            const cidade = document.getElementById('cidade').value;
+            const segmento = document.getElementById('segmento').value;
+            const res = document.getElementById('res');
+            if (!cidade) { alert("Digite uma cidade!"); return; }
+            res.innerHTML = '<p class="empty-msg">📍 Buscando...</p>';
+            
+            fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(cidade) + '&format=json&limit=1')
+            .then(r => r.json()).then(geo => {
+                if (geo.length === 0) throw new Error("Cidade não encontrada");
+                const lat = geo[0].lat, lon = geo[0].lon;
+                let tag = segmento === 'restaurant' ? 'amenity=restaurant' : segmento === 'barber' ? 'shop=hairdresser' : segmento === 'shop' ? 'shop' : segmento === 'car_repair' ? 'shop=car_repair' : 'amenity=cafe';
+                res.innerHTML = '<p class="empty-msg">🔍 Buscando negócios...</p>';
+                return fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: 'data=' + encodeURIComponent(`[out:json][timeout:15];(node[${tag}](around:3000,${lat},${lon});way[${tag}](around:3000,${lat},${lon}););out center 50;`) });
+            }).then(r => r.json()).then(data => {
+                if (!data.elements || data.elements.length === 0) { res.innerHTML = '<p class="empty-ms
