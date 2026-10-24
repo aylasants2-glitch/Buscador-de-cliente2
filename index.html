@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador e Gerador Pro</title>
+    <style>
+        :root { --primary: #2563eb; --bg: #f8fafc; --card: #ffffff; }
+        * { box-sizing: border-box; font-family: system-ui, sans-serif; }
+        body { background: var(--bg); margin: 0; padding: 15px; color: #1e293b; }
+        
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 12px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; background: #e2e8f0; color: #475569; }
+        .tab-btn.active { background: var(--primary); color: white; }
+        
+        h1 { margin: 0; font-size: 1.5rem; }
+        p { color: #64748b; font-size: 0.9rem; }
+        .box { display: flex; flex-direction: column; gap: 10px; margin: 20px 0; }
+        input, select, button { padding: 14px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 16px; width: 100%; }
+        .btn-primary { background: var(--primary); color: white; font-weight: bold; border: none; cursor: pointer; }
+        
+        .dashboard { background: white; padding: 15px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .stats-grid { display: flex; justify-content: space-around; text-align: center; }
+        .stat-card span { display: block; font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+        .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid var(--primary); }
+        .card h4 { margin: 0 0 5px 0; }
+        .badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; margin-top: 8px; font-weight: bold; }
+        .badge-sem-site { background: #fef08a; color: #854d0e; }
+        .badge-com-site { background: #dcfce7; color: #166534; }
+        .btn-sm { padding: 10px; font-size: 0.9rem; width: auto; margin-top: 10px; background: #0f172a; color: white; border: none; border-radius: 6px; font-weight: bold;}
+        .btn-google { background: #4285F4; color: white; text-decoration: none; display: inline-block; padding: 10px; font-size: 0.9rem; margin-top: 10px; border-radius: 6px; font-weight: bold;}
+        .btn-danger { background: #ef4444; margin-top: 10px; width: 100%; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold;}
+        .empty-msg { text-align: center; color: #94a3b8; margin-top: 30px; }
+    </style>
+</head>
+<body>
+    <div class="tabs">
+        <button class="tab-btn active" id="tab-buscador" onclick="mudarAba('buscador')">🔍 Buscador</button>
+        <button class="tab-btn" id="tab-gerador" onclick="mudarAba('gerador')">🎨 Gerador Pro</button>
+    </div>
+
+    <!-- TELA 1: BUSCADOR -->
+    <div id="tela-buscador">
+        <h1>Buscador de Clientes</h1>
+        <p>Encontre negócios que precisam de um site.</p>
+        <div class="box">
+            <input type="text" id="cidade" placeholder="Cidade (ex: Jundiaí)" value="Jundiaí">
+            <select id="segmento">
+                <option value="restaurant">Restaurantes</option>
+                <option value="barber">Barbearias</option>
+                <option value="shop">Lojas</option>
+                <option value="car_repair">Oficinas</option>
+                <option value="cafe">Cafés/Lanchonetes</option>
+            </select>
+            <button class="btn-primary" onclick="buscar()">Buscar Empresas</button>
+        </div>
+        <div class="dashboard">
+            <h3>Seu Progresso</h3>
+            <div class="stats-grid">
+                <div class="stat-card"><span id="st1">0</span><small>Salvos</small></div>
+                <div class="stat-card"><span id="st2">0</span><small>Contatados</small></div>
+                <div class="stat-card"><span id="st3">0</span><small>Clientes</small></div>
+            </div>
+        </div>
+        <div id="res"><p class="empty-msg">Digite uma cidade e clique em buscar.</p></div>
+        <div id="salvos" style="display:none;">
+            <h3>📁 Meus Contatos</h3>
+            <div id="lista"></div>
+            <button class="btn-danger" onclick="limparTudo()">Apagar Tudo</button>
+        </div>
+    </div>
+
+    <!-- TELA 2: GERADOR PRO -->
+    <div id="tela-gerador" style="display:none;">
+        <h1>Gerador de Sites PRO</h1>
+        <p>Crie um site nível agência para impressionar o cliente.</p>
+        <div class="box">
+            <input type="text" id="gen-nome" placeholder="Nome da Empresa">
+            <input type="text" id="gen-tel" placeholder="WhatsApp (ex: 11999998888)">
+            <input type="text" id="gen-slogan" placeholder="Slogan (ex: O melhor da cidade)">
+            <select id="gen-ramo">
+                <option value="Barbearia">💈 Barbearia</option>
+                <option value="Restaurante">🍔 Restaurante</option>
+                <option value="Oficina">🔧 Oficina</option>
+                <option value="Loja">🛍️ Loja</option>
+                <option value="Serviços">💼 Serviços Gerais</option>
+            </select>
+            <select id="gen-cor">
+                <option value="#1e293b">Dark Premium</option>
+                <option value="#dc2626">Vermelho Intenso</option>
+                <option value="#2563eb">Azul Confiança</option>
+                <option value="#16a34a">Verde Sucesso</option>
+                <option value="#d97706">Dourado Luxo</option>
+            </select>
+            <button class="btn-primary" onclick="gerarSitePro()">✨ Gerar Site Nível Agência</button>
+            
+            <!-- ÁREA DE DOWNLOAD (Só aparece após gerar) -->
+            <div id="area-download" style="display: none; margin-top: 15px; padding: 15px; background: #dcfce7; border-radius: 8px; text-align: center;">
+                <p style="color: #166534; font-weight: bold; margin-bottom: 10px;">✅ Site gerado com sucesso!</p>
+                <button onclick="baixarSite()" style="background: #16a34a; color: white; padding: 12px; border-radius: 8px; border: none; font-weight: bold; width: 100%;">
+                    📥 Baixar Arquivo do Site
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- LÓGICA DAS ABAS ---
+        function mudarAba(aba) {
+            document.getElementById('tela-buscador').style.display = aba === 'buscador' ? 'block' : 'none';
+            document.getElementById('tela-gerador').style.display = aba === 'gerador' ? 'block' : 'none';
+            document.getElementById('tab-buscador').className = aba === 'buscador' ? 'tab-btn active' : 'tab-btn';
+            document.getElementById('tab-gerador').className = aba === 'gerador' ? 'tab-btn active' : 'tab-btn';
+        }
+
+        // --- LÓGICA DO BUSCADOR ---
+        let salvos = JSON.parse(localStorage.getItem('meus_clientes')) || [];
+        
+        function buscar() {
+            const cidade = document.getElementById('cidade').value;
+            const segmento = document.getElementById('segmento').value;
+            const res = document.getElementById('res');
+            if (!cidade) { alert("Digite uma cidade!"); return; }
+            res.innerHTML = '<p class="empty-msg">📍 Buscando...</p>';
+            
+            fetch('https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(cidade) + '&format=json&limit=1')
+            .then(r => r.json()).then(geo => {
+                if (geo.length === 0) throw new Error("Cidade não encontrada");
+                const lat = geo[0].lat, lon = geo[0].lon;
+                let tag = segmento === 'restaurant' ? 'amenity=restaurant' : segmento === 'barber' ? 'shop=hairdresser' : segmento === 'shop' ? 'shop' : segmento === 'car_repair' ? 'shop=car_repair' : 'amenity=cafe';
+                res.innerHTML = '<p class="empty-msg">🔍 Buscando negócios...</p>';
+                return fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: 'data=' + encodeURIComponent(`[out:json][timeout:15];(node[${tag}](around:3000,${lat},${lon});way[${tag}](around:3000,${lat},${lon}););out center 50;`) });
+            }).then(r => r.json()).then(data => {
+                if (!data.elements || data.elements.length === 0) { res.innerHTML = '<p class="empty-msg">Nenhum negócio encontrado.</p>'; return; }
+                res.innerHTML = '';
+                data.elements.filter(e => e.tags && e.tags.name).forEach(local => {
+                    const temSite = local.tags.website || local.tags['contact:website'];
+                    const fone = local.tags.phone || local.tags['contact:phone'] || 'Não informado';
+                    const endereco = local.tags['addr:street'] || 'Endereço não detalhado';
+                    const div = document.createElement('div'); div.className = 'card';
+                    div.innerHTML = `<h4>${local.tags.name}</h4><p>📍 ${endereco}</p><p>📞 ${fone}</p><span class="badge ${temSite ? 'badge-com-site' : 'badge-sem-site'}">${temSite ? '✅ Site' : '🔥 Sem site'}</span><br><button class="btn-sm" onclick='salvar(${JSON.stringify(JSON.stringify(local.tags))})'>💾 Salvar</button><a href="https://www.google.com/search?q=${encodeURIComponent(local.tags.name + ' ' + endereco)}" target="_blank" class="btn-google">🌐 Google</a>`;
+                    res.appendChild(div);
+                });
+            }).catch(err => { res.innerHTML = `<div style="color:#991b1b; padding:10px; background:#fee2e2;">❌ ${err.message}</div>`; });
+        }
+
+        function salvar(tagsStr) { 
+            const tags = JSON.parse(tagsStr); 
+            if (salvos.some(s => s.nome === tags.name)) { alert("Já salvo!"); return; } 
+            salvos.push({ id: Date.now(), nome: tags.name, telefone: tags.phone || '', site: tags.website || '', status: 'Novo' }); 
+            localStorage.setItem('meus_clientes', JSON.stringify(salvos)); 
+            atualizar(); alert("Salvo!"); 
+        }
+
+        function atualizar() { 
+            document.getElementById('st1').innerText = salvos.length; 
+            document.getElementById('st2').innerText = salvos.filter(s => s.status !== 'Novo').length; 
+            document.getElementById('st3').innerText = salvos.filter(s => s.status === 'Fechado').length; 
+            const area = document.getElementById('salvos'); 
+            const lista = document.getElementById('lista'); 
+            if (salvos.length > 0) { 
+                area.style.display = 'block'; 
+                lista.innerHTML = salvos.map(s => `<div class="card" style="border-left-color: #0f172a;"><h4>${s.nome}</h4><p>${s.site ? 'Baixa Prioridade' : '🔥 Alta Prioridade'}</p><select onchange="mudar(${s.id}, this.value)" style="margin-top:8px; padding:8px;"><option value="Novo" ${s.status === 'Novo' ? 'selected' : ''}>Novo Contato</option><option value="Proposta" ${s.status === 'Proposta' ? 'selected' : ''}>Proposta Enviada</option><option value="Respondeu" ${s.status === 'Respondeu' ? 'selected' : ''}>Respondeu</option><option value="Fechado" ${s.status === 'Fechado' ? 'selected' : ''}>Cliente Fechado</option></select><button class="btn-sm" style="background:#ef4444; margin-left:5px;" onclick="excluir(${s.id})">Excluir</button></div>`).join(''); 
+            } else { 
+                area.style.display = 'none'; 
+            } 
+        }
+
+        function mudar(id, status) { 
+            const s = salvos.find(x => x.id === id); 
+            if (s) { s.status = status; localStorage.setItem('meus_clientes', JSON.stringify(salvos)); atualizar(); } 
+        }
+
+        function excluir(id) { 
+            if(confirm("Apagar?")) { 
+                salvos = salvos.filter(x => x.id !== id); 
+                localStorage.setItem('meus_clientes', JSON.stringify(salvos)); 
+                atualizar(); 
+            } 
+        }
+
+        function limparTudo() { 
+            if(confirm("Apagar todos?")) { 
+                salvos = []; localStorage.removeItem('meus_clientes'); atualizar(); 
+            } 
+        }
+
+        // --- LÓGICA DO GERADOR PRO ---
+        let codigoSiteGerado = "";
+
+        function gerarSitePro() {
+            const nome = document.getElementById('gen-nome').value || 'Sua Empresa';
+            const tel = document.getElementById('gen-tel').value;
+            const slogan = document.getElementById('gen-slogan').value || 'Qualidade e confiança para você.';
+            const ramo = document.getElementById('gen-ramo').value;
+            const cor = document.getElementById('gen-cor').value;
+
+            let imgFundo = 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1200&q=80';
+            if (ramo === 'Barbearia') imgFundo = 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&w=1200&q=80';
+            if (ramo === 'Restaurante') imgFundo = 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=1200&q=80';
+            if (ramo === 'Oficina') imgFundo = 'https://images.unsplash.com/photo-1613214150384-4f0d0c403a0f?auto=format&fit=crop&w=1200&q=80';
+
+            codigoSiteGerado = `
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>${nome} - ${ramo}</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+                    <style>
+                        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+                        body { background: #f8fafc; color: #1e293b; }
+                        .hero { background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('${imgFundo}'); background-size: cover; background-position: center; height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; padding: 20px; }
+                        .hero h1 { font-size: 3rem; font-weight: 900; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 2px; }
+                        .hero p { font-size: 1.2rem; margin-bottom: 30px; font-weight: 400; max-width: 600px; }
+                        .btn-whats { background: #25D366; color: white; padding: 18px 40px; border-radius: 50px; font-size: 1.2rem; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; transition: transform 0.3s; box-shadow: 0 10px 20px rgba(37, 211, 102, 0.4); }
+                        .btn-whats:hover { transform: translateY(-5px); }
+                        .section { padding: 80px 20px; max-width: 1000px; margin: 0 auto; text-align: center; }
+                        .section h2 { font-size: 2rem; margin-bottom: 40px; color: ${cor}; font-weight: 900; }
+                        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+                        .card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); transition: transform 0.3s; border-top: 5px solid ${cor}; }
+                        .card:hover { transform: translateY(-10px); }
+                        .card h3 { margin-bottom: 10px; color: #1e293b; }
+                        .card p { color: #64748b; line-height: 1.6; }
+                        .footer { background: #0f172a; color: #94a3b8; text-align: center; padding: 30px; font-size: 0.9rem; }
+                        .badge-pro { background: ${cor}; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-bottom: 15px; display: inline-block; }
+                    </style>
+                </head>
+                <body>
+                    <header class="hero">
+                        <span class="badge-pro">${ramo.toUpperCase()} PROFISSIONAL</span>
+                        <h1>${nome}</h1>
+                        <p>${slogan}</p>
+                        ${tel ? `<a href="https://wa.me/55${tel.replace(/\\D/g, '')}" class="btn-whats" target="_blank">📱 Agendar pelo WhatsApp</a>` : ''}
+                    </header>
+                    <section class="section">
+                        <h2>Por que escolher a ${nome}?</h2>
+                        <div class="grid">
+                            <div class="card"><h3>⭐ Qualidade Premium</h3><p>Utilizamos os melhores materiais e técnicas para garantir a sua satisfação total.</p></div>
+                            <div class="card"><h3>⚡ Atendimento Rápido</h3><p>Seu tempo é valioso. Oferecemos um atendimento ágil e sem burocracia.</p></div>
+                            <div class="card"><h3>💎 Preço Justo</h3><p>Acreditamos que qualidade não precisa ser cara. Confira nossos preços.</p></div>
+                        </div>
+                    </section>
+                    <section class="section" style="background: white;">
+                        <h2>O que nossos clientes dizem</h2>
+                        <div class="grid">
+                            <div class="card" style="border-top: none; border-left: 5px solid ${cor}; text-align: left;">
+                                <p>"Simplesmente o melhor atendimento da cidade. Recomendo de olhos fechados!"</p>
+                                <h4 style="margin-top: 15px; color: ${cor};">- Carlos M.</h4>
+                            </div>
+                            <div class="card" style="border-top: none; border-left: 5px solid ${cor}; text-align: left;">
+                                <p>"Ambiente incrível e profissionais super capacitados. Voltarei com certeza."</p>
+                                <h4 style="margin-top: 15px; color: ${cor};">- Ana P.</h4>
+                            </div>
+                        </div>
+                    </section>
+                    <footer class="footer">
+                        <p>&copy; ${new Date().getFullYear()} ${nome}. Todos os direitos reservados.</p>
+                        <p style="margin-top: 10px; font-size: 0.8rem;">Site desenvolvido por <strong style="color: white;">[Seu Nome]</strong></p>
+                    </footer>
+                </body>
+                </html>
+            `;
+
+            const novaAba = window.open();
+            novaAba.document.write(codigoSiteGerado);
+            document.getElementById('area-download').style.display = 'block';
+        }
+
+        function baixarSite() {
+            if (!codigoSiteGerado) return;
+            const blob = new Blob([codigoSiteGerado], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'site-cliente.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            alert("Site baixado! Agora você pode hospedar ou enviar para o cliente.");
+        }
+
+        window.onload = atualizar;
+    </script>
+</body>
+</html>
