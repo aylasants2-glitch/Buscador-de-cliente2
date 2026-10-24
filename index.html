@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prospecta Pro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- TELA DE VENDAS -->
+    <div id="vendas" class="landing">
+        <h1 class="title">Encontre Clientes e Gere Sites.</h1>
+        <p class="sub">A ferramenta definitiva para quem vende sites.</p>
+        <ul class="ben">
+            <li>✅ Buscador de negócios sem site</li>
+            <li>✅ Gerador de sites nível agência</li>
+            <li>✅ Painel de acompanhamento</li>
+        </ul>
+        <div class="price">
+            <h2>R$ 50<span>/mês</span></h2>
+            <p>Acesso ilimitado.</p>
+            <a href="https://wa.me/5511932630791" class="btn-w">📱 Assinar pelo WhatsApp</a>
+        </div>
+        <button class="btn-l" onclick="irLogin()">Já sou assinante</button>
+    </div>
+
+    <!-- TELA DE LOGIN -->
+    <div id="login" style="display:none;">
+        <div class="box-l">
+            <h2>Acessar</h2>
+            <input type="email" id="l-email" placeholder="E-mail">
+            <input type="password" id="l-senha" placeholder="Senha">
+            <input type="password" id="l-cod" placeholder="Código Admin (Opcional)" class="input-cod">
+            <button onclick="entrar()">Entrar</button>
+            <button onclick="irVendas()" class="btn-voltar">Voltar</button>
+        </div>
+    </div>
+
+    <!-- TELA DO APP -->
+    <div id="app" style="display:none;">
+        <div class="tabs">
+            <button class="tab on" id="t-b" onclick="aba('b')">🔍 Buscador</button>
+            <button class="tab" id="t-g" onclick="aba('g')">🎨 Gerador</button>
+            <button class="tab" id="t-a" style="display:none; background: var(--a); color: white;" onclick="aba('a')">👑 Admin</button>
+            <button class="tab" style="flex: 0.3; background: #ef4444; color: white;" onclick="sair()">Sair</button>
+        </div>
+
+        <!-- BUSCADOR -->
+        <div id="v-b">
+            <h1>Buscador</h1>
+            <div class="box">
+                <input type="text" id="cidade" placeholder="Cidade" value="Jundiaí">
+                <select id="seg"><option value="restaurant">Restaurantes</option><option value="barber">Barbearias</option></select>
+                <button onclick="buscar()">Buscar</button>
+            </div>
+            <div class="stats">
+                <div><span id="s1">0</span><small>Salvos</small></div>
+                <div><span id="s2">0</span><small>Contatados</small></div>
+                <div><span id="s3">0</span><small>Clientes</small></div>
+            </div>
+            <div id="res"><p class="msg-vazia">Digite uma cidade.</p></div>
+            <div id="salvos" style="display:none;">
+                <h3>📁 Contatos</h3>
+                <div id="lista"></div>
+                <button class="btn-danger" onclick="limpar()">Apagar Tudo</button>
+            </div>
+        </div>
+
+        <!-- GERADOR -->
+        <div id="v-g" style="display:none;">
+            <h1>Gerador PRO</h1>
+            <div class="box">
+                <input type="text" id="g-nome" placeholder="Nome da Empresa">
+                <input type="text" id="g-tel" placeholder="WhatsApp">
+                <input type="text" id="g-slogan" placeholder="Slogan">
+                <select id="g-ramo"><option value="Barbearia">💈 Barbearia</option><option value="Restaurante">🍔 Restaurante</option></select>
+                <select id="g-cor"><option value="#1e293b">Dark Premium</option><option value="#dc2626">Vermelho</option><option value="#2563eb">Azul</option></select>
+                <button onclick="gerar()">✨ Gerar Site</button>
+                <div id="dl" style="display: none; margin-top: 15px; background: #dcfce7; padding: 15px; border-radius: 8px; text-align: center;">
+                    <button class="btn-download" onclick="baixar()">📥 Baixar Arquivo</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN -->
+        <div id="v-a" style="display:none;">
+            <h1>Painel Admin</h1>
+            <div class="box box-admin">
+                <input type="email" id="a-email" placeholder="E-mail do cliente">
+                <input type="text" id="a-senha" placeholder="Senha">
+                <button class="btn-admin" onclick="addUser()">Adicionar Cliente</button>
+            </div>
+            <h3>Assinantes</h3>
+            <div id="users"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
